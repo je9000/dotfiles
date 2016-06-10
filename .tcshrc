@@ -1,0 +1,166 @@
+unset autologout
+set backslash_quote
+
+setenv PAGER      less
+setenv BLOCKSIZE  K
+setenv CLICOLOR   yes
+setenv COLUMNS
+setenv CVS_RSH /usr/bin/ssh
+setenv LESS '-I'
+setenv LESSHISTFILE '-'
+setenv PERLDOC_PAGER 'less -R'
+
+setenv PERL_LOCAL_LIB_ROOT "$HOME/perl5"
+setenv PERL_MB_OPT "--install_base $HOME/perl5"
+setenv PERL_MM_OPT "INSTALL_BASE=$HOME/perl5"
+setenv PERL5LIB "$HOME/perl5/lib/perl5/x86_64-linux-thread-multi:$HOME/perl5/lib/perl5" # incomplete
+
+if ( $OSTYPE == "linux" ) then
+    setenv LANG en_US
+endif
+
+setenv PATH /sbin:/usr/sbin:/bin:/usr/local/bin:/usr/bin
+set path = (/sbin /usr/sbin /bin /usr/local/bin /usr/bin)
+# setenv MY_PERL5LIB
+
+umask 022
+unalias vi
+
+if ( -X vim ) then
+    setenv EDITOR vim
+else
+    setenv EDITOR vi
+endif
+
+if ($?prompt) then
+        # An interactive shell -- set some stuff up
+        set autolist
+        set filec
+        set histfile = ~/.history
+        set history = 900
+        set savehist=(900 merge)
+        set autolist
+        set promptchars = "%#"
+        set listjobs
+        set nobeep
+        set symlinks = chase
+        setenv SHORT_HOST $HOST
+        set prompt = "$SHORT_HOST %#"
+        setenv LSCOLORS gxfxcxdxbxgEgdabaEacad
+        setenv LS_COLORS "di=36;40:ln=35;40:so=32;40:pi=33;40:ex=31;40:bd=36;:cd=36;43:su=0;41:sg=0;:tw=0;42:ow=0;43:"
+        complete cd 'p/1/d/'
+        complete pushd 'p/1/d/'
+        #complete sudo 'n/-u/u/' 'n/-/c/' 'p/1/c/' 'C/*/f/'
+        complete sudo 'n/-u/u/' 'p/1/c/' 'C/*/f/'
+        complete chown 'c/-/n/' 'n/-/u/' 'p/1/u/' 'C/*/f/'
+        complete man 'C/*/c/'
+        # Confusing! Order matters, here.
+        # 1) Check if the current parameter contains a slash. If so, complete
+        #    it as a file.
+        # 2) Check if the current parameter starts with a "." (as in
+        #    "./filename") and if so, complete it as a file.
+        # 3) If we're on parameter one, just guess we're completing a hostname.
+        #    Could easily be a file that we're completing, but assume files
+        #    will be caught by the first two rules.
+        # 4) Check and see if the previous parameter has a colon in it. If so,
+        #    the last parameter was probably a hostname, so assume this one
+        #    will be a filename.
+        # 5) If the previous parameter did NOT have a colon in it, assume it
+        #    was a filename and this parameter should be completed as a host.
+        # Note: The p@1@ part is important (in that position) because the n's
+        # will try and complete based off of the first word (scp) and not the
+        # first parameter.
+        #complete scp 'C@*/@f@' 'C@.@f@' 'p@1@$SSH_HOSTS@:' 'n@*:@f@' 'n@*[^:]@$SSH_HOSTS@:'
+        # Try it with files AND hosts by default?
+        complete scp 'C@*/@f@' 'C@.@f@' 'p@1@`ls -a;echo $SSH_HOSTS`@' 'n@*:@f@' 'n@*[^:]@$SSH_HOSTS@:'
+        complete ping 'p@*@$SSH_HOSTS@'
+        complete host 'p@*@$SSH_HOSTS@'
+        complete ssh 'n@-i@f@' 'p@*@$SSH_HOSTS@'
+        complete ssh-keygen 'n@-R@$SSH_HOSTS@'
+        complete screen 'n@-dr@`ls /var/run/screen/S-$USER/ | & grep -v "No such file or directory" | sed "s/^[0-9]*\.//"`@'
+
+        # For no backslash_quote ...
+        #alias title printf '\\033]0\;%s\\007' '\!^'
+
+        if ( $term == 'cons25' || $term == 'vt100' ) then
+            alias title echo ' \\\!\\\!\\\! Title change: \!*'
+        else if ( $term == 'screen' ) then
+            alias title setenv CURRENT_TITLE '\!*' ';' printf '\\\\033k%s\\\\033\\\\\\\\\\\\007' '\!*'
+        else
+            alias title setenv CURRENT_TITLE '\!*' ';' printf '\\\\033]0\\;%s\\\\007' '\!*'
+        endif
+
+        unalias ssh
+        if ( -X ssh ) then
+            # Note, the fact that the semicolons are inside quotes is important
+            alias ssh setenv LAST_TITLE '$CURRENT_TITLE' ';'\
+                      title '\!$' ';' \
+                      `which ssh` '\!*;' \
+                      title '$LAST_TITLE' ';' \
+                      unsetenv LAST_TITLE
+        endif
+
+        unalias screen
+        if ( -X screen ) then
+            #alias screen `which screen` '\!*' '; title $CURRENT_TITLE'
+            alias ssh-screen ~/bin/ssh-agent-proxy-screen '\!*'
+        endif
+
+        if ( -X vim ) then
+            alias v vim
+            alias sudov sudo vim -u ~/.vimrc
+        else
+            alias v vi
+            alias sudov sudo vi
+        endif
+
+        alias vmail "v -c 'source ~/.vimrc-mail'"
+        alias tabs_to_spaces perl -pi -e '"s/\t/    /g;"' '\!*'
+        alias dos_to_unix perl -pi -e '"s/\r\n/\n/;"' '\!*'
+        # 20100426 - Large nested structures (mixes of hash and array refs in
+        # particular) look unkempt with -sot and -sct, so I'm disabling them
+        # for now, to see if I prefer this style.
+        #alias pretty 'perltidy -b -ce -i=4 -l=120 -nolq -nsfs -pt=0 -sbt=2 -bt=1 -bbt=0 -sot -sct -ci=1 -nbbc -nolc'
+        alias pretty 'perltidy -b -ce -i=4 -l=120 -nolq -nsfs -pt=0 -sbt=2 -bt=1 -bbt=0 -ci=1 -nbbc -nolc'
+        alias cpretty 'astyle --style=otbs --indent=spaces=4 --unpad-paren --align-pointer=name --align-reference=name --convert-tabs --pad-oper --pad-header'
+        alias l 'ls -alF'
+        alias pwd echo \$cwd
+        alias htitle title $SHORT_HOST
+        alias pl 'perl -MData::Dumper -e \'sub D(\[$@%&*]){print Dumper($_[0])}sub d{print Dumper($_[0])}\''
+        alias ple pl -e
+        alias rehash_ssh 'test -e ~/.ssh/known_hosts && set SSH_HOSTS=`grep -v \'\s*#\' ~/.ssh/known_hosts | awk -F \' |,\' \'{ gsub(/[\[\]]/, ""); sub(/:[0-9]+/, ""); hosts[$1]=1} END { for( x in hosts ) { print x } }\'` || setenv SSH_HOSTS ""'
+        alias ppi 'perl -MPPI -MPPI::Dumper -e \'my$m=PPI::Document->new(q|\!*|)or die qq|Could not open file\n|;my$d=PPI::Dumper->new($m,whitespace=>0,comments=>0);$d->print;\''
+        alias kill_proxy 'ps -ux | grep agent-proxy | grep \'perl\' | awk \'{print $2}\'|xargs kill'
+        alias find_module perl -M'\!*' -e '\'$_ = \'\!*\'; s/::/\//g; print $INC{"$_.pm"},$/\''
+        alias v_module 'v `find_module \!*`'
+        alias stty_erase 'stty erase ^\?'
+        alias indent_wrap 'perl -MText::Wrap -e \'$Text::Wrap::columns = $ARGV[0] || 79; $s = ""; while($line = <STDIN>) { if (length($line) > $w && $line =~ /^( ?- )/) { $s .= wrap("", " " x length($1), $line) } else { $s .= $line }} print wrap("","",$s);\'' --
+        alias pwgen 'echo "\!$" | egrep -q \'^[0-9]+$\' && ( env LC_ALL=C tr -dc \'A-Za-z0-9\`~@#$%^&*()_+[]{}\|;:<>?,./\' < /dev/urandom | head -c \!$ | xargs ; true ) || echo Need length'
+        alias fix_ml_comments perl -p -e 'next if m~/\*~ && m~\*/~; s~^(\s*)/\* (.*)~$1/*\n$1 * $2~g; s~^(\s*) \* (.+)\*/~$1 * $2\n$1 \*/~;'
+        alias sha256 openssl dgst -sha256
+        alias sha384 openssl dgst -sha384
+        alias sha512 openssl dgst -sha512
+        alias base64enc openssl enc -base64
+        alias base64dec openssl enc -base64 -d
+
+        # Seems to break if you have a ; in your arguments. First arg is ssh key to add.
+        alias new-ssh-agent 'env SSH_AUTH_SOCK= ssh-agent sh -c \'ssh-add \!^ && \!:2-* \''
+
+        title $SHORT_HOST
+        rehash_ssh
+
+        bindkey "^[[1~" beginning-of-line
+        bindkey '^[^[' kill-whole-line
+        bindkey "^[[4~" end-of-line
+        bindkey "^W" backward-delete-word
+        bindkey "^[[3~" delete-char
+        bindkey "^[[5C" forward-word
+        bindkey "^[[5D" backward-word
+        bindkey -k up history-search-backward
+        bindkey -k down history-search-forward
+endif
+
+if ( -r ~/.tcshrc-local && -P022 ~/.tcshrc-local == 0 ) then
+    source ~/.tcshrc-local
+endif
+

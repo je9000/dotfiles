@@ -1,0 +1,6 @@
+vbell off
+vbellwait 0
+hardstatus alwayslastline
+hardstatus string '%{= kC}[ %H ][%= %?%-Lw%?(%n*%f%t%?(%u)%?)%?%+Lw%?%?%= ][ %m/%d %c ]'
+defscrollback 20000
+startup_message off
