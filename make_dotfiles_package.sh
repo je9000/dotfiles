@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# I hope you have a sane $PATH set!
+set -u
 
-echo " -- make_dotfiles_package.sh version 1.2"
+echo " -- make_dotfiles_package.sh v1.3"
 
 $(which whoami > /dev/null && which tar > /dev/null && which awk > /dev/null)
 if [ $? != 0 ]; then
@@ -32,9 +32,6 @@ MYHOMEDIR=$(echo $MYHOMEDIR | sed 's/\/$//')
 
 echo " -- Using homedir ($MYHOMEDIR) for current user ($ME)."
 
-OCWD=$(pwd)
-cd $MYHOMEDIR
-tar -cvzf dotfiles.tar.gz .tcshrc .screenrc .vimrc .vim $(basename $0)
-cd $OCWD
+tar -cvzf dotfiles.tar.gz $(basename $0) -C $MYHOMEDIR .tcshrc .screenrc .vimrc .vim
 
 echo " -- File $MYHOMEDIR/dotfiles.tar.gz written successfully!"
