@@ -6,7 +6,7 @@ setenv BLOCKSIZE  K
 setenv CLICOLOR   yes
 setenv COLUMNS
 setenv CVS_RSH /usr/bin/ssh
-setenv LESS '-I'
+setenv LESS '-IR'
 setenv LESSHISTFILE '-'
 setenv PERLDOC_PAGER 'less -R'
 
@@ -135,13 +135,14 @@ if ($?prompt) then
         alias v_module 'v `find_module \!*`'
         alias stty_erase 'stty erase ^\?'
         alias indent_wrap 'perl -MText::Wrap -e \'$Text::Wrap::columns = $ARGV[0] || 79; $s = ""; while($line = <STDIN>) { if (length($line) > $w && $line =~ /^( ?- )/) { $s .= wrap("", " " x length($1), $line) } else { $s .= $line }} print wrap("","",$s);\'' --
-        alias pwgen 'echo "\!$" | egrep -q \'^[0-9]+$\' && ( env LC_ALL=C tr -dc \'A-Za-z0-9\`~@#$%^&*()_+[]{}\|;:<>?,./\' < /dev/urandom | head -c \!$ | xargs ; true ) || echo Need length'
+        alias pwgen 'dd if=/dev/urandom bs=1024 count=1 | & openssl dgst -sha384 -binary | openssl enc -base64 | cut -b 1-22'
         alias fix_ml_comments perl -p -e 'next if m~/\*~ && m~\*/~; s~^(\s*)/\* (.*)~$1/*\n$1 * $2~g; s~^(\s*) \* (.+)\*/~$1 * $2\n$1 \*/~;'
         alias sha256 openssl dgst -sha256
         alias sha384 openssl dgst -sha384
         alias sha512 openssl dgst -sha512
         alias base64enc openssl enc -base64
         alias base64dec openssl enc -base64 -d
+        alias ssh-keygen-safe ssh-keygen -o -a 32 -b 4097 -t rsa
 
         # Seems to break if you have a ; in your arguments. First arg is ssh key to add.
         alias new-ssh-agent 'env SSH_AUTH_SOCK= ssh-agent sh -c \'ssh-add \!^ && \!:2-* \''
