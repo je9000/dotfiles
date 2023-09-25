@@ -38,14 +38,14 @@ if ($?prompt) then
         set filec
         set histfile = ~/.history
         set history = 900
-        set savehist=(900 merge)
+        set savehist=(900 merge lock)
         set autolist
         set promptchars = "%#"
         set listjobs
         set nobeep
         set symlinks = chase
         setenv SHORT_HOST $HOST
-        set prompt = "$SHORT_HOST %#"
+        set prompt = "$SHORT_HOST %P %#"
         setenv LSCOLORS gxfxcxdxbxgEgdabaEacad
         setenv LS_COLORS "di=36;40:ln=35;40:so=32;40:pi=33;40:ex=31;40:bd=36;:cd=36;43:su=0;41:sg=0;:tw=0;42:ow=0;43:"
         complete cd 'p/1/d/'
@@ -143,6 +143,7 @@ if ($?prompt) then
         alias base64enc openssl enc -base64
         alias base64dec openssl enc -base64 -d
         alias ssh-keygen-safe ssh-keygen -o -a 32 -b 4097 -t rsa
+        alias nohist 'set histfile=/dev/null'
 
         # Seems to break if you have a ; in your arguments. First arg is ssh key to add.
         alias new-ssh-agent 'env SSH_AUTH_SOCK= ssh-agent sh -c \'ssh-add \!^ && \!:2-* \''
